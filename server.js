@@ -70,36 +70,10 @@ function beginPrompts() {
         }
     });
   }
-  
-  //View Employees/ READ all, SELECT * FROM
-  function viewEmployee() {
-    console.log("Viewing employees\n");
-  
-    var query =
-      `SELECT e.id, e.first_name, e.last_name, r.title, d.name AS department, r.salary, CONCAT(m.first_name, ' ', m.last_name) AS manager
-    FROM employee e
-    LEFT JOIN role r
-      ON e.role_id = r.id
-    LEFT JOIN department d
-    ON d.id = r.department_id
-    LEFT JOIN employee m
-      ON m.id = e.manager_id`
-  
-    connection.query(query, function (err, res) {
-      if (err) throw err;
-  
-      console.table(res);
-      console.log("Employees viewed!\n");
-  
-      firstPrompt();
-    });
-  
-  }
-  
-  //"View Employees by Department" / READ by, SELECT * FROM
-  // Make a department array
-  function viewEmployeeByDepartment() {
-    console.log("Viewing employees by department\n");
+
+  // View All Departments / READ by, SELECT * FROM, creates a viewable department array
+  function viewDepartments() {
+    console.log("Viewing All Departments\n");
   
     var query =
       `SELECT d.id, d.name, r.salary AS budget
@@ -118,10 +92,35 @@ function beginPrompts() {
       }));
   
       console.table(res);
-      console.log("Department view succeed!\n");
+      console.log("Department view success.\n");
   
       promptDepartment(departmentChoices);
     });
+  }
+
+  //View All Employees/READ all, SELECT * FROM
+  function viewEmployees() {
+    console.log("Viewing employees\n");
+  
+    var query =
+      `SELECT e.id, e.first_name, e.last_name, r.title, d.name AS department, r.salary, CONCAT(m.first_name, ' ', m.last_name) AS manager
+    FROM employee e
+    LEFT JOIN role r
+      ON e.role_id = r.id
+    LEFT JOIN department d
+    ON d.id = r.department_id
+    LEFT JOIN employee m
+      ON m.id = e.manager_id`
+  
+    connection.query(query, function (err, res) {
+      if (err) throw err;
+  
+      console.table(res);
+      console.log("Employees viewed!\n");
+  
+      beginPrompts();
+    });
+  
   }
   
   // User choose the department list, then employees pop up
@@ -154,7 +153,7 @@ function beginPrompts() {
           console.table("response ", res);
           console.log(res.affectedRows + "Employees are viewed!\n");
   
-          firstPrompt();
+          beginPrompts();
         });
       });
   }
@@ -221,7 +220,7 @@ function beginPrompts() {
             console.table(res);
             console.log(res.insertedRows + "Inserted successfully!\n");
   
-            firstPrompt();
+            beginPrompts();
           });
       });
   }
@@ -271,7 +270,7 @@ function beginPrompts() {
           console.table(res);
           console.log(res.affectedRows + "Deleted!\n");
   
-          firstPrompt();
+          beginPrompts();
         });
       });
   }
@@ -362,7 +361,7 @@ function beginPrompts() {
             console.table(res);
             console.log(res.affectedRows + "Updated successfully!");
   
-            firstPrompt();
+            beginPrompts();
           });
       });
   }
@@ -398,8 +397,7 @@ function beginPrompts() {
   
   function promptAddRole(departmentChoices) {
   
-    inquirer
-      .prompt([
+    inquirer.prompt([
         {
           type: "input",
           name: "roleTitle",
@@ -432,8 +430,7 @@ function beginPrompts() {
             console.table(res);
             console.log("Role Inserted!");
   
-            firstPrompt();
+            beginPrompts();
           });
-  
       });
   }
