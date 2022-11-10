@@ -10,60 +10,65 @@ const connection = mysql.createConnection({
     database: 'employees_db'
 });
 
+// starts prompt function
 connection.connect(function (err) {
     if (err) throw (err);
     console.log('Connected.');
     console.log('WELCOME EMPLOYEE MANAGER');
-
+    beginPrompts();
 })
 
-function firstPrompt() {
-
-    inquirer
-      .prompt({
+function beginPrompts() {
+    inquirer.prompt({
         type: "list",
         name: "task",
         message: "Would you like to do?",
         choices: [
-          "View Employees",
-          "View Employees by Department",
-          "Add Employee",
-          "Remove Employees",
-          "Update Employee Role",
+          "View All Departments",
+          "View All Roles",
+          "View All Employees",
+          "Add Department",
           "Add Role",
-          "End"]
+          "Add Employee",
+          "Update Employee Role",
+          "End"
+        ]
       })
-      .then(function ({ task }) {
-        switch (task) {
-          case "View Employees":
-            viewEmployee();
+    .then(function ({ task }) {
+    switch (task) {
+        case "View All Departments":
+            viewDepartments();
             break;
   
-          case "View Employees by Department":
-            viewEmployeeByDepartment();
+        case "View All Roles":
+            viewRoles();
             break;
         
-          case "Add Employee":
+        case "View All Employees":
+            viewEmployees();
+            break;
+  
+        case "Add Department":
+            addDepartment();
+            break;
+            
+        case "Add Role":
+            addRole();
+            break;
+
+        case "Add Employee":
             addEmployee();
             break;
-  
-          case "Remove Employees":
-            removeEmployees();
-            break;
-  
-          case "Update Employee Role":
+
+        case "Update Employee Role":
             updateEmployeeRole();
             break;
   
-          case "Add Role":
-            addRole();
-            break;
-  
-          case "End":
+        case "End":
             connection.end();
             break;
         }
-      });
+    });
   }
   
   //View Employees/ READ all, SELECT * FROM
