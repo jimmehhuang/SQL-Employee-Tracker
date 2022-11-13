@@ -2,20 +2,6 @@ const mysql2 = require('mysql2');
 const inquirer = require('inquirer');
 require('console.table');
 
-
-// inquirer prompt, viewable to user
-const promptList = {
-    viewAllEmployees: "View All Employees",
-    viewByDepartment: "View All Employees By Department",
-    viewByManager: "View All Employees By Manager",
-    addEmployee: "Add An Employee",
-    removeEmployee: "Remove An Employee",
-    updateRole: "Update Employee Role",
-    updateEmployeeManager: "Update Employee Manager",
-    viewAllRoles: "View All Roles",
-    exit: "Exit"
-};
-
 // create mysql connection
 const connection = mysql2.createConnection({
     host: 'localhost',
@@ -41,10 +27,9 @@ function prompt() {
                 "View all Departments",
                 "View all Roles",
                 "View all Employees",
-                //add in view all depts
+                "Add Department",
+                "Add Role",
                 "Add Employee",
-                //promptList.removeEmployee,
-                //add in add role
                 "Update Employee Role",
                 "Exit"
             ]
@@ -64,20 +49,20 @@ function prompt() {
                     viewAllEmployees();
                     break;
 
-                // case "Add Department":
-                //     addDepartment();
-                //     break;
+                case "Add Department":
+                    addDepartment();
+                    break;
 
-                // case "Add Role":
-                //     addRole();
-                //     break;
+                case "Add Role":
+                    addRole();
+                    break;
 
                 case "Add Employee":
                     addEmployee();
                     break;
 
                 case "Update Employee Role":
-                    remove('role');
+                    updateRole();
                     break;
 
                 case "Exit":
@@ -104,14 +89,10 @@ function viewAllDepartments() {
 
 // user chooses "view all roles"
 function viewAllRoles() {
-    const query = `SELECT role.title, employee.id, employee.first_name, employee.last_name, department.name AS department
-    FROM employee
-    LEFT JOIN role ON (role.id = employee.role_id)
-    LEFT JOIN department ON (department.id = role.department_id)
-    ORDER BY role.title;`;
+    const query = `SELECT * FROM role`;
     connection.query(query, (err, res) => {
         if (err) throw err;
-        console.log('VIEW EMPLOYEE BY ROLE.\n');
+        console.log('Viewing roles.\n');
         console.table(res);
         prompt();
     });
@@ -134,6 +115,72 @@ function viewAllEmployees() {
     });
 }
 
+// user chooses "add department"
+async function addDepartment() {
+    const department = await inquirer.prompt(askDepartment());
+    connection.query('SELECT department.id, department.name FROM department ORDER BY department.id;', async (err, res) => {
+        if (err) throw err;
+        connection.query(`INSERT INTO department SET (department.name= ${res.department});`);
+        console.log('Department added successfully.');
+        prompt();
+})
+}
+
+// ask for input of the department name, separated from addDepartment function
+function askDepartment() {
+    return ([
+        {
+            name: "department",
+            type: "input",
+            message: "Please enter the name of the new department."
+        }
+    ]);
+}
+
+// user chooses "add role"
+async function addRole() {
+    const role = await inquirer.prompt(askRole());
+    connection.query('SELECT * FROM role', async (err, res) => {
+        if (err) throw err;
+        connection.query(`INSERT INTO role SET (role.name= ${res.department});`);
+        console.log('Department added successfully.');
+        prompt();
+        connection.query(
+            'INSERT INTO employee SET ?',
+            {
+                title: role.title,
+                salary: parseInt(role.salary),
+                department_id: role.deptid,
+            },
+            (err, res) => {
+                if (err) throw err;
+                prompt();
+            }
+        );
+})
+}
+
+// ask for new role name
+function askRole(){
+        return ([
+            {
+                name: "title",
+                type: "input",
+                message: "What is the name of the new role you are implementing?"
+            },
+            {
+                name: "salary",
+                type: "input",
+                message: "How much does this position make, in USD?"
+            },
+            {
+                name: "deptid",
+                type: "choice",
+                message: "Which department will this position be added to?"
+            }
+        ]);
+}
+// user chooses "add employee"
 async function addEmployee() {
     const addname = await inquirer.prompt(askName());
     connection.query('SELECT role.id, role.title FROM role ORDER BY role.id;', async (err, res) => {
@@ -143,7 +190,7 @@ async function addEmployee() {
                 name: 'role',
                 type: 'list',
                 choices: () => res.map(res => res.title),
-                message: 'What is the employee role?: '
+                message: 'What is the employee role?'
             }
         ]);
         let roleId;
@@ -162,7 +209,7 @@ async function addEmployee() {
                     name: 'manager',
                     type: 'list',
                     choices: choices,
-                    message: 'Choose the employee Manager: '
+                    message: "Who is this employee's manager?"
                 }
             ]);
             let managerId;
@@ -181,7 +228,7 @@ async function addEmployee() {
                     }
                 }
             }
-            console.log('Employee has been added. Please view all employee to verify...');
+            console.log('Employee added. Please verify employee has been correctly added to database.');
             connection.query(
                 'INSERT INTO employee SET ?',
                 {
@@ -193,47 +240,30 @@ async function addEmployee() {
                 (err, res) => {
                     if (err) throw err;
                     prompt();
-
                 }
             );
         });
     });
 
 }
-function remove(input) {
-    const promptQ = {
-        yes: "Yes",
-        no: "No"
-    };
-    inquirer.prompt([
-        {
-            name: "action",
-            type: "list",
-            message: "In order to proceed an employee, an ID must be entered. View all employees to get" +
-                " the employee ID. Do you know the employee ID?",
-            choices: [promptQ.yes, promptQ.no]
-        }
-    ]).then(answer => {
-        if (input === 'delete' && answer.action === "yes") removeEmployee();
-        else if (input === 'role' && answer.action === "yes") updateRole();
-        else viewAllEmployees();
 
-
-
-    });
-};
-
-function askId() {
+// ask for employee name, separated from addEmployee function
+function askName() {
     return ([
         {
-            name: "name",
+            name: "first",
             type: "input",
-            message: "What is the employe ID?:  "
+            message: "Please enter the employee's first name."
+        },
+        {
+            name: "last",
+            type: "input",
+            message: "Please enter the employee's last name."
         }
     ]);
 }
 
-
+// user chooses "update employee role"
 async function updateRole() {
     const employeeId = await inquirer.prompt(askId());
 
@@ -258,23 +288,19 @@ async function updateRole() {
         SET role_id = ${roleId}
         WHERE employee.id = ${employeeId.name}`, async (err, res) => {
             if (err) throw err;
-            console.log('Role has been updated..')
+            console.log('Role has been updated.')
             prompt();
         });
     });
 }
 
-function askName() {
+// ask for employee ID, separated from updateRole function
+function askId() {
     return ([
         {
-            name: "first",
+            name: "name",
             type: "input",
-            message: "Enter the first name: "
-        },
-        {
-            name: "last",
-            type: "input",
-            message: "Enter the last name: "
+            message: "What is the ID of the employee you are updating?"
         }
     ]);
 }
