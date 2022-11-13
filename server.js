@@ -18,8 +18,8 @@ connection.connect(err => {
 
 
 function prompt() {
-    inquirer
-        .prompt({
+    console.log('===============\nWELCOME MANAGER.\n===============');
+    inquirer.prompt({
             name: 'action',
             type: 'list',
             message: 'What would you like to do?',
