@@ -18,7 +18,9 @@ The Inquirer npm package is required to handle processing of questions and answe
 ## Usage
 Run the server.js javascript file. Use the command node server.js to run the file. Users will be greeted with a prompt and multiple options as to what they would like to do regarding the employee database. Selecting one of the listed options will allow users to follow along with the prompts to update the database.
 
+![prompts](https://user-images.githubusercontent.com/113392613/201545394-333a4e02-f808-4d76-9394-ef2a7851e6c4.png)
 
+https://user-images.githubusercontent.com/113392613/201545381-a88dc40c-a047-4cb0-b20d-e9a0da1fca48.mp4
 
 ## License
 Refer to license in repo or as below:
